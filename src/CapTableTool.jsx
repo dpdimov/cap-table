@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Plus, Trash2, TrendingUp, Users, DollarSign, X, Edit2, AlertCircle } from 'lucide-react';
 
 const CapTableTool = () => {
@@ -744,7 +744,7 @@ const CapTableTool = () => {
               <LineChart data={ownershipChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="stage" />
-                <YAxis label={{ value: 'Ownership %', angle: -90, position: 'insideLeft' }} />
+                <YAxis domain={[0, 100]} label={{ value: 'Ownership %', angle: -90, position: 'insideLeft' }} />
                 <Tooltip formatter={(value) => `${value}%`} />
                 <Legend />
                 {allShareholders.map(shareholder => (
@@ -765,16 +765,16 @@ const CapTableTool = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold mb-4 text-gray-800">Share Price & Valuation Growth</h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={valuationChartData}>
+              <ComposedChart data={valuationChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="stage" />
                 <YAxis yAxisId="left" label={{ value: 'Share Price ($)', angle: -90, position: 'insideLeft' }} />
                 <YAxis yAxisId="right" orientation="right" label={{ value: 'Valuation ($M)', angle: 90, position: 'insideRight' }} />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="Share Price" fill="#3b82f6" />
                 <Bar yAxisId="right" dataKey="Post-Money Valuation" fill="#10b981" />
-              </BarChart>
+                <Line yAxisId="left" type="monotone" dataKey="Share Price" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
 
