@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { LineChart, Line, BarChart, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Plus, Trash2, TrendingUp, Users, DollarSign, X, Edit2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Users, DollarSign, X, Edit2, AlertCircle, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // Style constants using CSS variables
 const styles = {
@@ -21,6 +23,48 @@ const CapTableTool = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [exitValuation, setExitValuation] = useState(50000000);
+
+  // Refs for PDF export
+  const capTableRef = useRef(null);
+  const exitDistributionRef = useRef(null);
+
+  // PDF export function
+  const exportToPDF = async (elementRef, filename) => {
+    if (!elementRef.current) return;
+
+    try {
+      const element = elementRef.current;
+
+      // Create canvas from the element
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#1a2332',
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      // Calculate dimensions
+      const imgWidth = 190; // A4 width minus margins (in mm)
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+
+      // Add title
+      pdf.setFontSize(16);
+      pdf.setTextColor(232, 237, 242);
+      pdf.text(filename.replace('.pdf', ''), 10, 15);
+
+      // Add the image
+      pdf.addImage(imgData, 'PNG', 10, 25, imgWidth, imgHeight);
+
+      // Save the PDF
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
 
   const [newRound, setNewRound] = useState({
     name: '',
@@ -825,8 +869,18 @@ const CapTableTool = () => {
 
           {/* Cap Table Snapshot */}
           <div className="rounded-lg shadow-lg p-6 mb-6" style={styles.bgSecondary}>
-            <h2 className="text-xl font-bold mb-4" style={styles.textPrimary}>Current Cap Table</h2>
-            <div className="overflow-x-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold" style={styles.textPrimary}>Current Cap Table</h2>
+              <button
+                onClick={() => exportToPDF(capTableRef, 'Cap-Table.pdf')}
+                className="flex items-center px-3 py-1.5 rounded-md text-sm transition-colors hover:opacity-90"
+                style={{ backgroundColor: 'var(--accent-2)', color: 'var(--bg-primary)' }}
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                Export PDF
+              </button>
+            </div>
+            <div className="overflow-x-auto" ref={capTableRef}>
               <table className="w-full">
                 <thead style={styles.bgTertiary}>
                   <tr>
@@ -1043,8 +1097,18 @@ const CapTableTool = () => {
 
               {/* Final Distribution Table */}
               <div>
-                <h3 className="font-semibold mb-3" style={styles.textPrimary}>Final Distribution Summary</h3>
-                <div className="overflow-x-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-semibold" style={styles.textPrimary}>Final Distribution Summary</h3>
+                  <button
+                    onClick={() => exportToPDF(exitDistributionRef, 'Exit-Distribution.pdf')}
+                    className="flex items-center px-3 py-1.5 rounded-md text-sm transition-colors hover:opacity-90"
+                    style={{ backgroundColor: 'var(--accent-2)', color: 'var(--bg-primary)' }}
+                  >
+                    <Download className="w-4 h-4 mr-1.5" />
+                    Export PDF
+                  </button>
+                </div>
+                <div className="overflow-x-auto" ref={exitDistributionRef}>
                   <table className="w-full">
                     <thead style={styles.bgTertiary}>
                       <tr>
